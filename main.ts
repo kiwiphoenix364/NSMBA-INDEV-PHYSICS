@@ -59,7 +59,8 @@ function GenerateCollision () {
             ..9999..........................
             9999............................
             `, SpriteKind.movingplatform)
-        mySprite5.vx = 50
+        mySprite5.ax = 20
+        mySprite5.ay = 20
         tiles.placeOnTile(mySprite5, value)
     }
     for (let index = 0; index <= slopeimg1.width; index++) {
@@ -90,6 +91,10 @@ let GameMode = 0
 let TileCollisionArrayY: number[] = []
 let TileCollisionArrayX: number[] = []
 let mySprite6 = sprites.create(img`
+    c 
+    c 
+    c 
+    c 
     c 
     c 
     `, SpriteKind.Player)
@@ -1106,10 +1111,11 @@ game.onUpdate(function () {
                 }
             }
         }
-        mySprite6.setPosition(mySprite.x, mySprite.bottom + mySprite6.height)
+        mySprite6.setPosition(mySprite.x, mySprite.bottom)
         for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
-            if (value.overlapsWith(mySprite6)) {
+            if (value.overlapsWith(mySprite) || value.overlapsWith(mySprite6)) {
                 mySprite.x += value.vx / 50
+                mySprite.y += value.vy / 50
             }
         }
     }
@@ -1872,16 +1878,14 @@ game.onUpdate(function () {
         }
     }
 })
+game.onUpdateInterval(1000, function () {
+    for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
+        value.ax = 0 - value.ax
+        value.ay = 0 - value.ay
+    }
+})
 forever(function () {
 	
-})
-game.onUpdateInterval(500, function () {
-    for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
-        value.vx = 0 - value.vx
-        if (true) {
-        	
-        }
-    }
 })
 game.onUpdateInterval(100, function () {
     timer.background(function () {
