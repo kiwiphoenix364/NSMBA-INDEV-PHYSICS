@@ -11,10 +11,12 @@ namespace SpriteKind {
 }
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     timer.background(function () {
-        if (hittingwall) {
-            mySprite.vy = -200
-            pause(500)
-            mySprite.vy = 200
+        if (GameMode == 2) {
+            if (hittingwall || canJump || tiles.tileAtLocationIsWall(tiles.getTileLocation(mySprite.x / 16, mySprite.bottom / 16))) {
+                mySprite.vy = -200
+                pause(500)
+                mySprite.vy = 200
+            }
         }
     })
 })
@@ -41,21 +43,21 @@ function GenerateCollision () {
     for (let value of tiles.getTilesByType(assets.tile`myTile10`)) {
         mySprite5 = sprites.create(img`
             ..............................99
-            ............................99..
-            ..........................99....
-            ........................99......
-            ......................99........
-            ....................99..........
-            ..................99............
-            ................99..............
-            ..............99................
-            ............99..................
-            ..........99....................
-            ........99......................
-            ......99........................
-            ....99..........................
-            ..99............................
-            99..............................
+            ............................9999
+            ..........................9999..
+            ........................9999....
+            ......................9999......
+            ....................9999........
+            ..................9999..........
+            ................9999............
+            ..............9999..............
+            ............9999................
+            ..........9999..................
+            ........9999....................
+            ......9999......................
+            ....9999........................
+            ..9999..........................
+            9999............................
             `, SpriteKind.movingplatform)
         mySprite5.vx = 50
         tiles.placeOnTile(mySprite5, value)
@@ -79,13 +81,19 @@ let mySprite20211019T211434134Z: Sprite = null
 let ML = 0
 let SELECT_CHARACTER = 0
 let CHARACTER_SELECT: Sprite = null
-let GameMode = 0
 let mySprite5: Sprite = null
 let slopeimg1: Image = null
 let mySprite: Sprite = null
+let canJump = false
 let hittingwall = false
+let GameMode = 0
 let TileCollisionArrayY: number[] = []
 let TileCollisionArrayX: number[] = []
+let mySprite6 = sprites.create(img`
+    c 
+    c 
+    `, SpriteKind.Player)
+mySprite6.setFlag(SpriteFlag.Invisible, true)
 let movingplatformimg1 = img`
     ..............................cc
     ............................cc..
@@ -1091,11 +1099,17 @@ game.onUpdate(function () {
         for (let index = 0; index <= movingplatformimg1.width; index++) {
             for (let index2 = 0; index2 <= movingplatformimg1.height; index2++) {
                 if (slopeimg1.getPixel(index, index2) != 0) {
-                    for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
+                    for (let value of spriteutils.getSpritesWithin(SpriteKind.movingplatform, movingplatformimg1.width + movingplatformimg1.height / 2, mySprite)) {
                         everyframecolx.push(value.left + index)
                         everyframecoly.push(value.top + index2)
                     }
                 }
+            }
+        }
+        mySprite6.setPosition(mySprite.x, mySprite.bottom + mySprite6.height)
+        for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
+            if (value.overlapsWith(mySprite6)) {
+                mySprite.x += value.vx / 50
             }
         }
     }
@@ -1103,7 +1117,7 @@ game.onUpdate(function () {
 game.onUpdate(function () {
     if (GameMode == 2) {
         mySprite.setFlag(SpriteFlag.GhostThroughWalls, false)
-        controller.moveSprite(mySprite, 5, 0)
+        controller.moveSprite(mySprite, 100, 0)
         hittingwall = false
         if (mySprite.isHittingTile(CollisionDirection.Bottom)) {
             hittingwall = true
@@ -1115,8 +1129,8 @@ game.onUpdate(function () {
                         hittingwall = true
                         mySprite.bottom = TileCollisionArrayY[index2] - 1
                     } else if (mySprite.bottom + 6 >= TileCollisionArrayY[index2]) {
-                        hittingwall = true
                         mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                        canJump = true
                     }
                 }
             }
@@ -1127,8 +1141,8 @@ game.onUpdate(function () {
                         hittingwall = true
                         mySprite.bottom = everyframecoly[index2] - 1
                     } else if (mySprite.bottom + 6 >= everyframecoly[index2]) {
-                        hittingwall = true
                         mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                        canJump = true
                     }
                 }
             }
@@ -1864,6 +1878,9 @@ forever(function () {
 game.onUpdateInterval(500, function () {
     for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
         value.vx = 0 - value.vx
+        if (true) {
+        	
+        }
     }
 })
 game.onUpdateInterval(100, function () {
