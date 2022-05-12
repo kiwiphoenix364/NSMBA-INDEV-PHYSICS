@@ -57,6 +57,7 @@ function GenerateCollision () {
             ..99............................
             99..............................
             `, SpriteKind.movingplatform)
+        mySprite5.vx = 50
         tiles.placeOnTile(mySprite5, value)
     }
     for (let index = 0; index <= slopeimg1.width; index++) {
@@ -64,16 +65,10 @@ function GenerateCollision () {
             if (slopeimg1.getPixel(index, index2) != 0) {
                 for (let value of tiles.getTilesByType(assets.tile`myTile13`)) {
                     TileCollisionArrayX.push(value.column * 16 + index)
-                    TileCollisionArrayY.push((value.row - 1) * 16 + index2)
+                    TileCollisionArrayY.push((value.row - 0.9375) * 16 + index2)
                 }
             }
         }
-    }
-    for (let index2 = 0; index2 <= TileCollisionArrayX.length; index2++) {
-        mySprite4 = sprites.create(img`
-            c 
-            `, SpriteKind.ICEFLOWER)
-        mySprite4.setPosition(TileCollisionArrayX[index2], TileCollisionArrayY[index2])
     }
     GameMode = 2
 }
@@ -85,16 +80,12 @@ let ML = 0
 let SELECT_CHARACTER = 0
 let CHARACTER_SELECT: Sprite = null
 let GameMode = 0
-let mySprite4: Sprite = null
 let mySprite5: Sprite = null
 let slopeimg1: Image = null
 let mySprite: Sprite = null
 let hittingwall = false
 let TileCollisionArrayY: number[] = []
 let TileCollisionArrayX: number[] = []
-let myCollision = sprites.create(img`
-    1 
-    `, SpriteKind.Player)
 let movingplatformimg1 = img`
     ..............................cc
     ............................cc..
@@ -1111,39 +1102,43 @@ game.onUpdate(function () {
 })
 game.onUpdate(function () {
     if (GameMode == 2) {
-        controller.moveSprite(myCollision, 5, 0)
-        mySprite.setPosition(myCollision.x, myCollision.y)
+        mySprite.setFlag(SpriteFlag.GhostThroughWalls, false)
+        controller.moveSprite(mySprite, 5, 0)
         hittingwall = false
         if (mySprite.isHittingTile(CollisionDirection.Bottom)) {
             hittingwall = true
         } else {
             for (let index2 = 0; index2 <= TileCollisionArrayX.length; index2++) {
-                if (myCollision.x + -5 > TileCollisionArrayX[index2] && myCollision.x + -7 < TileCollisionArrayX[index2] && myCollision.bottom + 1 >= TileCollisionArrayY[index2]) {
-                    hittingwall = true
-                    if (myCollision.isHittingTile(CollisionDirection.Right) || myCollision.isHittingTile(CollisionDirection.Left)) {
-                        myCollision.bottom = TileCollisionArrayY[index2] - 2
-                    } else {
-                        myCollision.bottom = TileCollisionArrayY[index2] - 1
+                if (mySprite.x + -5 > TileCollisionArrayX[index2] && mySprite.x + -7 < TileCollisionArrayX[index2]) {
+                    if (mySprite.bottom + 1 >= TileCollisionArrayY[index2]) {
+                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                        hittingwall = true
+                        mySprite.bottom = TileCollisionArrayY[index2] - 1
+                    } else if (mySprite.bottom + 6 >= TileCollisionArrayY[index2]) {
+                        hittingwall = true
+                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
                     }
                 }
             }
             for (let index2 = 0; index2 <= everyframecolx.length; index2++) {
-                if (mySprite.x + -5 > everyframecolx[index2] && mySprite.x + -7 < everyframecolx[index2] && mySprite.bottom + 1 >= everyframecoly[index2]) {
-                    hittingwall = true
-                    if (myCollision.isHittingTile(CollisionDirection.Right) || myCollision.isHittingTile(CollisionDirection.Left)) {
-                        myCollision.bottom = everyframecolx[index2] - 2
-                    } else {
-                        myCollision.bottom = everyframecoly[index2] - 1
+                if (mySprite.x + -5 > everyframecolx[index2] && mySprite.x + -7 < everyframecolx[index2]) {
+                    if (mySprite.bottom + 1 >= everyframecoly[index2]) {
+                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                        hittingwall = true
+                        mySprite.bottom = everyframecoly[index2] - 1
+                    } else if (mySprite.bottom + 6 >= everyframecoly[index2]) {
+                        hittingwall = true
+                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
                     }
                 }
             }
         }
         if (hittingwall) {
-            myCollision.vy = 0
-            myCollision.ay = 0
+            mySprite.vy = 0
+            mySprite.ay = 0
         } else {
-            if (myCollision.vy >= 0) {
-                myCollision.vy = 100
+            if (mySprite.vy >= 0) {
+                mySprite.vy = 100
             }
         }
     }
@@ -1865,6 +1860,11 @@ game.onUpdate(function () {
 })
 forever(function () {
 	
+})
+game.onUpdateInterval(500, function () {
+    for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
+        value.vx = 0 - value.vx
+    }
 })
 game.onUpdateInterval(100, function () {
     timer.background(function () {
