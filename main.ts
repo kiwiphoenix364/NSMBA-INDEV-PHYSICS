@@ -59,8 +59,8 @@ function GenerateCollision () {
             ..9999..........................
             9999............................
             `, SpriteKind.movingplatform)
-        mySprite5.ax = 20
-        mySprite5.ay = 20
+        mySprite5.ax = 40
+        mySprite5.ay = 40
         tiles.placeOnTile(mySprite5, value)
     }
     for (let index = 0; index <= slopeimg1.width; index++) {
