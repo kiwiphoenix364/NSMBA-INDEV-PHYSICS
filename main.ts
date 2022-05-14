@@ -14,8 +14,9 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         if (GameMode == 2) {
             if (hittingwall || canJump || tiles.tileAtLocationIsWall(tiles.getTileLocation(mySprite.x / 16, mySprite.bottom / 16))) {
                 mySprite.vy = -200
-                pause(500)
-                mySprite.vy = 200
+                mySprite.ay = -500
+                pause(100)
+                mySprite.ay = 500
             }
         }
     })
@@ -62,13 +63,17 @@ function GenerateCollision () {
         mySprite5.ax = 40
         mySprite5.ay = 40
         tiles.placeOnTile(mySprite5, value)
+        timer.after(500, function () {
+            mySprite5.ax = 0 - mySprite5.ax
+            mySprite5.ay = 0 - mySprite5.ay
+        })
     }
     for (let index = 0; index <= slopeimg1.width; index++) {
         for (let index2 = 0; index2 <= slopeimg1.height; index2++) {
             if (slopeimg1.getPixel(index, index2) != 0) {
-                for (let value of tiles.getTilesByType(assets.tile`myTile13`)) {
-                    TileCollisionArrayX.push(value.column * 16 + index)
-                    TileCollisionArrayY.push((value.row - 0.9375) * 16 + index2)
+                for (let value2 of tiles.getTilesByType(assets.tile`myTile13`)) {
+                    TileCollisionArrayX.push(value2.column * 16 + index)
+                    TileCollisionArrayY.push((value2.row - 0.9375) * 16 + index2)
                 }
             }
         }
@@ -80,16 +85,18 @@ controller.menu.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 let mySprite20211019T211434134Z: Sprite = null
 let ML = 0
+let everyframecoly: number[] = []
+let everyframecolx: number[] = []
 let SELECT_CHARACTER = 0
 let CHARACTER_SELECT: Sprite = null
 let mySprite5: Sprite = null
-let slopeimg1: Image = null
 let mySprite: Sprite = null
 let canJump = false
 let hittingwall = false
 let GameMode = 0
 let TileCollisionArrayY: number[] = []
 let TileCollisionArrayX: number[] = []
+let slopeimg1: Image = null
 let mySprite6 = sprites.create(img`
     c 
     c 
@@ -117,8 +124,6 @@ let movingplatformimg1 = img`
     ..cc............................
     cc..............................
     `
-let everyframecolx: number[] = []
-let everyframecoly: number[] = []
 TileCollisionArrayX = []
 TileCollisionArrayY = []
 let textSprite = textsprite.create("")
@@ -1098,72 +1103,6 @@ POS1.setPosition(64, 96)
 POS2.setPosition(96, 96)
 CAMERA.setPosition(80, 60)
 game.onUpdate(function () {
-    if (GameMode == 2) {
-        everyframecolx = []
-        everyframecoly = []
-        for (let index = 0; index <= movingplatformimg1.width; index++) {
-            for (let index2 = 0; index2 <= movingplatformimg1.height; index2++) {
-                if (slopeimg1.getPixel(index, index2) != 0) {
-                    for (let value of spriteutils.getSpritesWithin(SpriteKind.movingplatform, movingplatformimg1.width + movingplatformimg1.height / 2, mySprite)) {
-                        everyframecolx.push(value.left + index)
-                        everyframecoly.push(value.top + index2)
-                    }
-                }
-            }
-        }
-        mySprite6.setPosition(mySprite.x, mySprite.bottom)
-        for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
-            if (value.overlapsWith(mySprite) || value.overlapsWith(mySprite6)) {
-                mySprite.x += value.vx / 50
-                mySprite.y += value.vy / 50
-            }
-        }
-    }
-})
-game.onUpdate(function () {
-    if (GameMode == 2) {
-        mySprite.setFlag(SpriteFlag.GhostThroughWalls, false)
-        controller.moveSprite(mySprite, 100, 0)
-        hittingwall = false
-        if (mySprite.isHittingTile(CollisionDirection.Bottom)) {
-            hittingwall = true
-        } else {
-            for (let index2 = 0; index2 <= TileCollisionArrayX.length; index2++) {
-                if (mySprite.x + -5 > TileCollisionArrayX[index2] && mySprite.x + -7 < TileCollisionArrayX[index2]) {
-                    if (mySprite.bottom + 1 >= TileCollisionArrayY[index2]) {
-                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
-                        hittingwall = true
-                        mySprite.bottom = TileCollisionArrayY[index2] - 1
-                    } else if (mySprite.bottom + 6 >= TileCollisionArrayY[index2]) {
-                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
-                        canJump = true
-                    }
-                }
-            }
-            for (let index2 = 0; index2 <= everyframecolx.length; index2++) {
-                if (mySprite.x + -5 > everyframecolx[index2] && mySprite.x + -7 < everyframecolx[index2]) {
-                    if (mySprite.bottom + 1 >= everyframecoly[index2]) {
-                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
-                        hittingwall = true
-                        mySprite.bottom = everyframecoly[index2] - 1
-                    } else if (mySprite.bottom + 6 >= everyframecoly[index2]) {
-                        mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
-                        canJump = true
-                    }
-                }
-            }
-        }
-        if (hittingwall) {
-            mySprite.vy = 0
-            mySprite.ay = 0
-        } else {
-            if (mySprite.vy >= 0) {
-                mySprite.vy = 100
-            }
-        }
-    }
-})
-game.onUpdate(function () {
     if (start_title_screen == 1) {
         FAKE_MARIO.follow(POS2, 100)
         FAKE_LUIGI.follow(POS1, 100)
@@ -1871,17 +1810,87 @@ game.onUpdate(function () {
     }
 })
 game.onUpdate(function () {
-    for (let value of sprites.allOfKind(SpriteKind.Projectile)) {
-        transformSprites.changeRotation(value, 20)
-        if (mySprite.overlapsWith(value)) {
-            value.destroy()
+    for (let value5 of sprites.allOfKind(SpriteKind.Projectile)) {
+        transformSprites.changeRotation(value5, 20)
+        if (mySprite.overlapsWith(value5)) {
+            value5.destroy()
+        }
+    }
+})
+game.onUpdate(function () {
+    if (GameMode == 2) {
+        everyframecolx = []
+        everyframecoly = []
+        for (let index3 = 0; index3 <= movingplatformimg1.width; index3++) {
+            for (let index22 = 0; index22 <= movingplatformimg1.height; index22++) {
+                if (slopeimg1.getPixel(index3, index22) != 0) {
+                    for (let value3 of spriteutils.getSpritesWithin(SpriteKind.movingplatform, movingplatformimg1.width + movingplatformimg1.height / 2, mySprite)) {
+                        everyframecolx.push(value3.left + index3)
+                        everyframecoly.push(value3.top + index22)
+                    }
+                }
+            }
+        }
+        mySprite6.setPosition(mySprite.x, mySprite.bottom)
+        for (let value4 of sprites.allOfKind(SpriteKind.movingplatform)) {
+            if (value4.overlapsWith(mySprite6)) {
+                mySprite.x += value4.vx / 50
+                mySprite.y += value4.vy / 50
+            }
+        }
+    }
+})
+game.onUpdate(function () {
+    if (GameMode == 2) {
+        mySprite.setFlag(SpriteFlag.GhostThroughWalls, false)
+        controller.moveSprite(mySprite, 100, 0)
+        hittingwall = false
+        if (mySprite.isHittingTile(CollisionDirection.Bottom)) {
+            hittingwall = true
+        } else {
+            for (let index23 = 0; index23 <= TileCollisionArrayX.length; index23++) {
+                if (mySprite.x + -5 > TileCollisionArrayX[index23] && mySprite.x + -7 < TileCollisionArrayX[index23]) {
+                    if (mySprite.vy >= 0 && mySprite.bottom - 3 <= TileCollisionArrayY[index23]) {
+                        if (mySprite.bottom + 1 >= TileCollisionArrayY[index23]) {
+                            mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                            hittingwall = true
+                            mySprite.bottom = TileCollisionArrayY[index23] - 1
+                        } else if (mySprite.bottom + 6 >= TileCollisionArrayY[index23]) {
+                            mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                            canJump = true
+                        }
+                    }
+                }
+            }
+            for (let index24 = 0; index24 <= everyframecolx.length; index24++) {
+                if (mySprite.x + -5 > everyframecolx[index24] && mySprite.x + -7 < everyframecolx[index24]) {
+                    if (mySprite.vy >= mySprite5.vy - 50 && mySprite.bottom - 3 <= everyframecoly[index24]) {
+                        if (mySprite.bottom + 1 >= everyframecoly[index24]) {
+                            mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                            hittingwall = true
+                            mySprite.bottom = everyframecoly[index24] - 1
+                        } else if (mySprite.bottom + 6 >= everyframecoly[index24]) {
+                            mySprite.setFlag(SpriteFlag.GhostThroughWalls, true)
+                            canJump = true
+                        }
+                    }
+                }
+            }
+        }
+        if (hittingwall) {
+            mySprite.vy = 0
+            mySprite.ay = 0
+        } else {
+            if (mySprite.vy >= 0) {
+                mySprite.vy = 100
+            }
         }
     }
 })
 game.onUpdateInterval(1000, function () {
-    for (let value of sprites.allOfKind(SpriteKind.movingplatform)) {
-        value.ax = 0 - value.ax
-        value.ay = 0 - value.ay
+    for (let value6 of sprites.allOfKind(SpriteKind.movingplatform)) {
+        value6.ax = 0 - value6.ax
+        value6.ay = 0 - value6.ay
     }
 })
 forever(function () {
@@ -3158,7 +3167,7 @@ game.onUpdateInterval(100, function () {
             SELECT_CHARACTER = 0
             timer.after(2000, function () {
                 Blur.FadeOut()
-                tiles.destroySpritesOfKind(SpriteKind.TitleScreenElement)
+                sprites.destroyAllSpritesOfKind(SpriteKind.TitleScreenElement)
                 pause(880)
                 mySprite20211019T211434134Z = sprites.create(img`
                     1111111.......................................................111111.........................................................
@@ -3715,7 +3724,7 @@ game.onUpdateInterval(100, function () {
                 pause(100)
                 Blur.FadeOut()
                 pause(20)
-                tiles.destroySpritesOfKind(SpriteKind.TitleScreenElement)
+                sprites.destroyAllSpritesOfKind(SpriteKind.TitleScreenElement)
                 mySprite = sprites.create(img`
                     . . . . . . . . . . . . . . . . 
                     . . . . . . . . . . . . . . . . 
